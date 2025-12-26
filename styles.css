@@ -1,0 +1,92 @@
+:root {
+  --primary: #1f2933;
+  --accent: #c49b63;
+  --bg: #f5f7fa;
+  --card: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--primary);
+}
+
+header {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--primary);
+  color: #fff;
+}
+
+.subtitle {
+  opacity: 0.85;
+}
+
+.print-btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+}
+
+.timeline {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.day {
+  background: var(--card);
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border-left: 6px solid var(--accent);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.day-number {
+  font-weight: bold;
+  color: var(--accent);
+}
+
+ul {
+  margin-top: 1rem;
+  padding-left: 1.2rem;
+}
+
+li {
+  margin-bottom: 0.6rem;
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Print styles */
+@media print {
+  .print-btn {
+    display: none;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .day {
+    page-break-inside: avoid;
+  }
+}
