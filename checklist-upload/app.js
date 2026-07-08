@@ -1,23 +1,45 @@
+const checklistItems = [
+  ["solution", "Telemedicine solution overview", "Prepare the pitch narrative: problem, proposed platform, target users, core modules, and delivery value."],
+  ["implementation", "Implementation plan", "Prepare discovery, design, pilot, rollout, training, support, acceptance criteria, and timeline."],
+  ["stakeholders", "Stakeholder map", "List Elvis, Raydo, hospital leads, Department of Health contacts, clinical users, IT, support, and decision makers."],
+  ["monitoring", "Monitoring framework", "Define uptime, usage, service health, incident, SLA, adoption, and reporting dashboards."],
+  ["risk", "Risk framework", "Prepare project, clinical, operational, integration, cyber, connectivity, and adoption risks with mitigations."],
+  ["security", "Data security pack", "Prepare access control, encryption, audit logging, backup, retention, privacy, and breach response controls."],
+  ["integration", "Department of Health integration", "Prepare integration assumptions, APIs, data exchange, HL7/FHIR mapping, legacy systems, and reporting approach."],
+  ["outcomes", "Expected outcomes", "Define measurable outcomes: access to care, faster medicine fulfilment, better records, improved reporting, and reduced admin load."],
+  ["demo", "Demo or screenshots", "Prepare wireframes, screenshots, clickable demo, or process mockups for the meeting."],
+  ["commercials", "Commercial and resourcing plan", "Prepare roles, delivery effort, licensing assumptions, hosting assumptions, pricing inputs, and next-step proposal actions."]
+];
+
+const RECIPIENT = "raydo@skunkworks.africa";
 const form = document.getElementById("checklistForm");
-const checkboxes = Array.from(document.querySelectorAll('input[name="item"]'));
-const fileUpload = document.getElementById("fileUpload");
-const fileList = document.getElementById("fileList");
 const progressPercent = document.getElementById("progressPercent");
 const progressText = document.getElementById("progressText");
+const uploadText = document.getElementById("uploadText");
 const output = document.getElementById("submissionOutput");
 const downloadButton = document.getElementById("downloadJson");
+const container = document.querySelector(".checklist");
+const validationSummary = document.createElement("div");
+validationSummary.className = "validation-summary";
+form.insertBefore(validationSummary, document.querySelector(".actions"));
 
-const STORAGE_KEY = "checklist-upload-form-state";
+container.innerHTML = `<legend>Meeting readiness checklist</legend>${checklistItems.map(([id, title, guidance]) => `
+  <article class="check-card" data-item-id="${id}">
+    <label class="check-item">
+      <input type="checkbox" name="item" value="${title}">
+      <span>${title}</span>
+    </label>
+    <p>${guidance}</p>
+    <label class="evidence-label">Required document or evidence upload
+      <input type="file" name="file-${id}" required>
+    </label>
+  </article>
+`).join("")}`;
+
+const checkboxes = Array.from(document.querySelectorAll('input[name="item"]'));
+const fileInputs = Array.from(document.querySelectorAll('input[type="file"]'));
+const STORAGE_KEY = "telemedicine-rfp-checklist-state";
 let latestSubmission = null;
-
-function getFiles() {
-  return Array.from(fileUpload.files || []).map((file) => ({
-    name: file.name,
-    size: file.size,
-    type: file.type || "unknown",
-    lastModified: new Date(file.lastModified).toISOString()
-  }));
-}
 
 function formatBytes(bytes) {
   if (!bytes) return "0 B";
@@ -26,57 +48,64 @@ function formatBytes(bytes) {
   return `${(bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
-function updateFileList() {
-  const files = getFiles();
-  if (!files.length) {
-    fileList.innerHTML = "";
-    return;
-  }
-
-  fileList.innerHTML = files
-    .map((file) => `
-      <div class="file-pill">
-        <span>${file.name}</span>
-        <strong>${formatBytes(file.size)}</strong>
-      </div>
-    `)
-    .join("");
+function getEvidence() {
+  return checklistItems.map(([id, title]) => {
+    const fileInput = document.querySelector(`[name="file-${id}"]`);
+    const file = fileInput && fileInput.files[0];
+    return {
+      id,
+      title,
+      checked: document.querySelector(`[data-item-id="${id}"] input[type="checkbox"]`).checked,
+      fileName: file ? file.name : "",
+      fileSize: file ? formatBytes(file.size) : "",
+      fileType: file ? (file.type || "unknown") : ""
+    };
+  });
 }
 
 function updateProgress() {
-  const completed = checkboxes.filter((checkbox) => checkbox.checked).length;
-  const total = checkboxes.length;
-  const percent = Math.round((completed / total) * 100);
+  const checkedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+  const uploadedCount = fileInputs.filter((input) => input.files.length > 0).length;
+  const total = checklistItems.length;
+  const percent = Math.round(((checkedCount + uploadedCount) / (total * 2)) * 100);
   const degrees = Math.round((percent / 100) * 360);
-
   progressPercent.textContent = `${percent}%`;
   progressPercent.style.background = `conic-gradient(var(--success) ${degrees}deg, #e5e7eb ${degrees}deg)`;
-  progressText.textContent = `${completed} of ${total} items complete`;
+  progressText.textContent = `${checkedCount} of ${total} checklist items complete`;
+  uploadText.textContent = `${uploadedCount} of ${total} evidence uploads attached`;
 }
 
 function collectSubmission() {
   const data = new FormData(form);
-  const checkedItems = checkboxes
-    .filter((checkbox) => checkbox.checked)
-    .map((checkbox) => checkbox.value);
-
+  const evidence = getEvidence();
   return {
-    submitterName: data.get("submitterName") || "",
+    preparedBy: data.get("submitterName") || "",
     email: data.get("email") || "",
-    project: data.get("project") || "",
+    project: data.get("project") || "Northern Cape Telemedicine Solution RFP",
     dueDate: data.get("dueDate") || "",
-    checklist: {
-      completedCount: checkedItems.length,
-      totalCount: checkboxes.length,
-      completedItems: checkedItems,
-      outstandingItems: checkboxes
-        .filter((checkbox) => !checkbox.checked)
-        .map((checkbox) => checkbox.value)
-    },
-    files: getFiles(),
     notes: data.get("notes") || "",
+    recipient: RECIPIENT,
+    evidence,
+    completed: evidence.filter((item) => item.checked && item.fileName).length,
+    total: evidence.length,
     generatedAt: new Date().toISOString()
   };
+}
+
+function validateSubmission() {
+  const missing = getEvidence().filter((item) => !item.checked || !item.fileName);
+  if (!missing.length) {
+    validationSummary.className = "validation-summary success";
+    validationSummary.innerHTML = "Ready: all checklist items are checked and all evidence uploads are selected.";
+    return true;
+  }
+  validationSummary.className = "validation-summary error";
+  validationSummary.innerHTML = `<strong>Not ready yet.</strong><ul>${missing.map((item) => `<li>${item.title}: ${!item.checked ? "not checked" : "missing upload"}</li>`).join("")}</ul>`;
+  return false;
+}
+
+function renderSubmission(submission) {
+  output.innerHTML = `<h3>Submission preview</h3><pre>${JSON.stringify(submission, null, 2)}</pre>`;
 }
 
 function saveState() {
@@ -88,29 +117,25 @@ function saveState() {
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
-
   try {
     const state = JSON.parse(raw);
-    form.elements.submitterName.value = state.submitterName || "";
+    form.elements.submitterName.value = state.preparedBy || "";
     form.elements.email.value = state.email || "";
     form.elements.project.value = state.project || "";
     form.elements.dueDate.value = state.dueDate || "";
     form.elements.notes.value = state.notes || "";
     if (Array.isArray(state.checked)) {
-      checkboxes.forEach((checkbox, index) => {
-        checkbox.checked = Boolean(state.checked[index]);
-      });
+      checkboxes.forEach((checkbox, index) => checkbox.checked = Boolean(state.checked[index]));
     }
   } catch (error) {
-    console.warn("Could not load saved checklist state", error);
+    console.warn("Could not load saved state", error);
   }
 }
 
-function renderSubmission(submission) {
-  output.innerHTML = `
-    <h3>Submission preview</h3>
-    <pre>${JSON.stringify(submission, null, 2)}</pre>
-  `;
+function openEmail(submission) {
+  const subject = encodeURIComponent(`Telemedicine RFP readiness pack - ${submission.project}`);
+  const body = encodeURIComponent(`Hi Raydo,\n\nThe telemedicine RFP readiness checklist is complete.\n\nCompleted: ${submission.completed}/${submission.total}\n\nEvidence manifest:\n${submission.evidence.map((item) => `- ${item.title}: ${item.fileName}`).join("\n")}\n\nNotes:\n${submission.notes || "None"}\n\nPlease attach the selected evidence files before sending.\n`);
+  window.location.href = `mailto:${RECIPIENT}?subject=${subject}&body=${body}`;
 }
 
 function downloadJson() {
@@ -118,10 +143,8 @@ function downloadJson() {
   const blob = new Blob([JSON.stringify(submission, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const safeProject = (submission.project || "checklist").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-
   link.href = url;
-  link.download = `${safeProject || "checklist"}-submission.json`;
+  link.download = "telemedicine-rfp-readiness-manifest.json";
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -130,33 +153,19 @@ function downloadJson() {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  updateProgress();
+  if (!validateSubmission()) return;
   latestSubmission = collectSubmission();
   renderSubmission(latestSubmission);
   saveState();
+  downloadJson();
+  openEmail(latestSubmission);
 });
 
-form.addEventListener("input", () => {
-  updateProgress();
-  saveState();
-});
-
-form.addEventListener("reset", () => {
-  setTimeout(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    latestSubmission = null;
-    fileList.innerHTML = "";
-    output.innerHTML = "<h3>Submission preview</h3><p>No submission generated yet.</p>";
-    updateProgress();
-  }, 0);
-});
-
-checkboxes.forEach((checkbox) => checkbox.addEventListener("change", updateProgress));
-fileUpload.addEventListener("change", () => {
-  updateFileList();
-  saveState();
-});
+form.addEventListener("input", () => { updateProgress(); saveState(); });
+form.addEventListener("change", () => { updateProgress(); saveState(); });
+form.addEventListener("reset", () => setTimeout(() => { localStorage.removeItem(STORAGE_KEY); validationSummary.innerHTML = ""; output.innerHTML = "<h3>Readiness status</h3><p>Complete all checklist items and upload one evidence file per item.</p>"; updateProgress(); }, 0));
 downloadButton.addEventListener("click", downloadJson);
 
 loadState();
 updateProgress();
-updateFileList();
