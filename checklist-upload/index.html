@@ -2,124 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Telemedicine RFP Meeting Pack</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Upload-enabled checklist form for collecting task evidence, files, notes, and completion status." />
-  <title>Checklist Upload Form</title>
+  <meta name="description" content="Meeting readiness checklist and documentation pack for a telemedicine RFP presentation." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="hero__content">
-      <p class="eyebrow">Checklist Form</p>
-      <h1>Upload-Enabled Execution Checklist</h1>
-      <p class="hero__summary">
-        Complete each item, attach supporting files, add notes, and export a submission record for review.
-      </p>
+
+<header class="hero">
+  <div class="hero__content">
+    <p class="eyebrow">Raydo and Elvis</p>
+    <h1>Telemedicine RFP Meeting Pack</h1>
+    <p class="hero__summary">Clear task guidance, required documents, uploads, validation, and email summary for the next presentation meeting.</p>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel form-panel" aria-labelledby="form-title">
+    <div class="section-heading">
+      <p class="eyebrow">Preparation checklist</p>
+      <h2 id="form-title">Required meeting pack</h2>
+      <p>Complete each task and upload its supporting document. When everything is complete, the page downloads a manifest and opens an email addressed to Raydo.</p>
     </div>
-  </header>
 
-  <main class="layout">
-    <section class="panel form-panel" aria-labelledby="form-title">
-      <div class="section-heading">
-        <p class="eyebrow">Submission details</p>
-        <h2 id="form-title">Checklist submission</h2>
-      </div>
-
-      <form id="checklistForm">
-        <div class="grid two-columns">
-          <label>
-            Submitter name
-            <input type="text" name="submitterName" placeholder="Full name" required />
-          </label>
-
-          <label>
-            Email address
-            <input type="email" name="email" placeholder="name@example.com" required />
-          </label>
-
-          <label>
-            Project / client
-            <input type="text" name="project" placeholder="Project, client, or department" />
-          </label>
-
-          <label>
-            Due date
-            <input type="date" name="dueDate" />
-          </label>
-        </div>
-
-        <fieldset class="checklist" aria-describedby="progressText">
-          <legend>Checklist items</legend>
-
-          <label class="check-item">
-            <input type="checkbox" name="item" value="Confirm requirements and acceptance criteria" />
-            <span>Confirm requirements and acceptance criteria</span>
-          </label>
-
-          <label class="check-item">
-            <input type="checkbox" name="item" value="Capture stakeholder or client approval" />
-            <span>Capture stakeholder or client approval</span>
-          </label>
-
-          <label class="check-item">
-            <input type="checkbox" name="item" value="Upload supporting documentation or evidence" />
-            <span>Upload supporting documentation or evidence</span>
-          </label>
-
-          <label class="check-item">
-            <input type="checkbox" name="item" value="Validate quality, completeness, and formatting" />
-            <span>Validate quality, completeness, and formatting</span>
-          </label>
-
-          <label class="check-item">
-            <input type="checkbox" name="item" value="Confirm delivery, handover, or next action" />
-            <span>Confirm delivery, handover, or next action</span>
-          </label>
-        </fieldset>
-
+    <form id="checklistForm" novalidate>
+      <div class="grid two-columns">
         <label>
-          Upload files
-          <input id="fileUpload" type="file" name="files" multiple />
-          <small>Files are staged in the browser for preview/export. A backend is required for permanent server-side storage.</small>
+          Prepared by
+          <input type="text" name="submitterName" placeholder="Raydo or Elvis" required />
         </label>
-
-        <div id="fileList" class="file-list" aria-live="polite"></div>
-
         <label>
-          Notes / comments
-          <textarea name="notes" rows="6" placeholder="Add context, blockers, reviewer notes, or next steps"></textarea>
+          Email address
+          <input type="email" name="email" placeholder="name@example.com" required />
         </label>
-
-        <div class="actions">
-          <button type="submit">Generate submission</button>
-          <button type="button" class="secondary" id="downloadJson">Download JSON</button>
-          <button type="reset" class="ghost">Reset</button>
-        </div>
-      </form>
-    </section>
-
-    <aside class="panel status-panel" aria-labelledby="status-title">
-      <div class="section-heading">
-        <p class="eyebrow">Progress</p>
-        <h2 id="status-title">Completion status</h2>
+        <label>
+          Project / opportunity
+          <input type="text" name="project" value="Northern Cape Telemedicine Solution RFP" required />
+        </label>
+        <label>
+          Meeting date
+          <input type="date" name="dueDate" required />
+        </label>
       </div>
 
-      <div class="progress-card">
-        <div class="progress-ring" id="progressPercent">0%</div>
-        <p id="progressText">0 of 5 items complete</p>
+      <label>
+        Executive notes
+        <textarea name="notes" rows="6" placeholder="Add assumptions, blockers, Elvis actions, Raydo actions, or final meeting notes."></textarea>
+      </label>
+
+      <fieldset class="checklist" aria-describedby="progressText">
+        <legend>Loading checklist...</legend>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit">Validate and open email</button>
+        <button type="button" class="secondary" id="downloadJson">Download manifest</button>
+        <button type="reset" class="ghost">Reset</button>
       </div>
+    </form>
+  </section>
 
-      <div class="output" id="submissionOutput">
-        <h3>Submission preview</h3>
-        <p>No submission generated yet.</p>
-      </div>
-    </aside>
-  </main>
+  <aside class="panel status-panel" aria-labelledby="status-title">
+    <div class="section-heading">
+      <p class="eyebrow">Progress</p>
+      <h2 id="status-title">Completion status</h2>
+    </div>
 
-  <footer>
-    <p>Static implementation: HTML, CSS, JavaScript, local browser state, file metadata capture, and JSON export.</p>
-  </footer>
+    <div class="progress-card">
+      <div class="progress-ring" id="progressPercent">0%</div>
+      <p id="progressText">0 checklist items complete</p>
+      <p id="uploadText">0 evidence uploads attached</p>
+    </div>
 
-  <script src="app.js"></script>
+    <div class="output" id="submissionOutput">
+      <h3>Readiness status</h3>
+      <p>Complete all checklist items and upload one evidence file per item.</p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <p>Static GitHub Pages form. Evidence files are selected locally and must be attached manually to the generated email.</p>
+</footer>
+
+<script src="app.js"></script>
 </body>
 </html>
